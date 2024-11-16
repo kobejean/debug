@@ -37,7 +37,7 @@ def test_get_incomplete_tasks():
     manager.add_task("Task 1", 3)
     manager.add_task("Task 2", 1)
     manager.add_subtask("Task 1", "Subtask 1")
-    manager.complete_task("Subtask 1")
+    manager.complete_task("Task 2")
     incomplete = manager.get_incomplete_tasks()
     assert len(incomplete) == 2
     assert incomplete[0].title == "Task 1"
@@ -61,6 +61,8 @@ def test_delete_task():
     assert len(manager.tasks) == 1
     assert manager.tasks[0].title == "Task 2"
 
+# HARD
+
 def test_delete_subtask():
     manager = TaskManager()
     manager.add_task("Task 1")
@@ -68,6 +70,17 @@ def test_delete_subtask():
     manager.add_subtask("Task 2", "Subtask")
     assert manager.delete_task("Subtask") == True
     assert len(manager.tasks[1].subtasks) == 0
+
+def test_get_incomplete_tasks_nested():
+    manager = TaskManager()
+    manager.add_task("Task 1", 3)
+    manager.add_task("Task 2", 1)
+    manager.add_subtask("Task 1", "Subtask 1")
+    manager.complete_task("Task 2")
+    incomplete = manager.get_incomplete_tasks()
+    assert len(incomplete) == 2
+    assert incomplete[0].title == "Task 1"
+    assert incomplete[1].title == "Subtask 1"
 
 def test_add_subtask_to_subtask():
     manager = TaskManager()
