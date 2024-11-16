@@ -52,15 +52,6 @@ def test_change_priority():
     # parent priority same because it already has smaller value
     assert manager.tasks[0].priority == 1 
 
-def test_change_priority_propagate():
-    manager = TaskManager()
-    manager.add_task("Task", 3)
-    manager.add_subtask("Task", "Subtask")
-    manager.change_priority("Subtask", 1)
-    assert manager.tasks[0].subtasks[0].priority == 1
-    # parent priority should change to 1 value because Subtask was changed to 1 which is lower than 3
-    assert manager.tasks[0].priority == 1 
-
 def test_delete_task():
     manager = TaskManager()
     manager.add_task("Task 1")
@@ -90,3 +81,12 @@ def test_add_subtask_to_subtask():
     assert len(manager.tasks[0].subtasks[0].subtasks) == 1
     assert manager.tasks[0].subtasks[0].subtasks[0].title == "Subtask 2"
     assert manager.tasks[0].subtasks[0].subtasks[0].priority == 2
+
+def test_change_priority_propagate():
+    manager = TaskManager()
+    manager.add_task("Task", 3)
+    manager.add_subtask("Task", "Subtask")
+    manager.change_priority("Subtask", 1)
+    assert manager.tasks[0].subtasks[0].priority == 1
+    # parent priority should change to 1 value because Subtask was changed to 1 which is lower than 3
+    assert manager.tasks[0].priority == 1 
