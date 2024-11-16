@@ -20,14 +20,12 @@ class TaskManager:
         for task in self.tasks:
             if task.title == title:
                 task.completed = True
-                # Bug 1: Doesn't mark subtasks as complete
                 return True
         return False
     
     def add_subtask(self, parent_title, subtask_title):
         for task in self.tasks:
             if task.title == parent_title:
-                # Bug 2: Doesn't inherit parent's priority
                 subtask = Task(subtask_title, 1)
                 task.subtasks.append(subtask)
                 return subtask
@@ -38,10 +36,9 @@ class TaskManager:
         for task in self.tasks:
             if task.completed == False:
                 incomplete.append(task)
-            # Bug 3: Always adds subtasks regardless of completion status
+            
             for subtask in task.subtasks:
                 incomplete.append(subtask)
-        # Bug 4: Returns list without sorting by priority
         return incomplete
     
     def change_priority(self, title, new_priority):
@@ -50,6 +47,9 @@ class TaskManager:
                 # Bug 5: Doesn't validate priority value
                 task.priority = new_priority
                 return True
+            else:
+                if task.change_priority(title, new_priority):
+                    return True
             # Bug 6: Missing subtask priority update
         return False
     
