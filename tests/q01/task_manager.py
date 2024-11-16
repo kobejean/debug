@@ -44,13 +44,8 @@ class TaskManager:
     def change_priority(self, title, new_priority):
         for task in self.tasks:
             if task.title == title:
-                # Bug 5: Doesn't validate priority value
                 task.priority = new_priority
                 return True
-            else:
-                if task.change_priority(title, new_priority):
-                    return True
-            # Bug 6: Missing subtask priority update
         return False
     
     def delete_task(self, title):
@@ -60,7 +55,6 @@ class TaskManager:
                 return True
             for j, subtask in enumerate(task.subtasks):
                 if subtask.title == title:
-                    # Bug 7: Wrong index in subtask deletion
                     del task.subtasks[i]
                     return True
         return False

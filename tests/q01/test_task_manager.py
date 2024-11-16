@@ -32,19 +32,6 @@ def test_add_subtask():
     # "Subtask" should inherit priority from "Parent Task" which is 2
     assert manager.tasks[0].subtasks[0].priority == 2
 
-def test_add_subtask_to_subtask():
-    manager = TaskManager()
-    manager.add_task("Parent Task", 2)
-    subtask1 = manager.add_subtask("Parent Task", "Subtask 1")
-    subtask2 = manager.add_subtask("Subtask 1", "Subtask 2")
-
-    assert len(manager.tasks[0].subtasks) == 1
-    assert manager.tasks[0].subtasks[0].title == "Subtask 1"
-    assert manager.tasks[0].subtasks[0].priority == 2
-    assert len(manager.tasks[0].subtasks[0].subtasks) == 1
-    assert manager.tasks[0].subtasks[0].subtasks[0].title == "Subtask 2"
-    assert manager.tasks[0].subtasks[0].subtasks[0].priority == 2
-
 def test_get_incomplete_tasks():
     manager = TaskManager()
     manager.add_task("Task 1", 3)
@@ -79,5 +66,27 @@ def test_delete_task():
     manager.add_task("Task 1")
     manager.add_task("Task 2")
     manager.add_subtask("Task 2", "Subtask")
+    assert manager.delete_task("Task 1") == True
+    assert len(manager.tasks) == 1
+    assert manager.tasks[0].title == "Task 2"
+
+def test_delete_subtask():
+    manager = TaskManager()
+    manager.add_task("Task 1")
+    manager.add_task("Task 2")
+    manager.add_subtask("Task 2", "Subtask")
     assert manager.delete_task("Subtask") == True
     assert len(manager.tasks[1].subtasks) == 0
+
+def test_add_subtask_to_subtask():
+    manager = TaskManager()
+    manager.add_task("Parent Task", 2)
+    subtask1 = manager.add_subtask("Parent Task", "Subtask 1")
+    subtask2 = manager.add_subtask("Subtask 1", "Subtask 2")
+
+    assert len(manager.tasks[0].subtasks) == 1
+    assert manager.tasks[0].subtasks[0].title == "Subtask 1"
+    assert manager.tasks[0].subtasks[0].priority == 2
+    assert len(manager.tasks[0].subtasks[0].subtasks) == 1
+    assert manager.tasks[0].subtasks[0].subtasks[0].title == "Subtask 2"
+    assert manager.tasks[0].subtasks[0].subtasks[0].priority == 2
