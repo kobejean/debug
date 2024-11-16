@@ -10,6 +10,21 @@ class Task:
 class TaskManager:
     def __init__(self):
         self.tasks = []
+    
+    def find_task(self, title):
+        def find_subtask(task):
+            if task.title == title:
+                return task
+            else:
+                for subtask in task.subtasks:
+                    found = find_subtask(subtask)
+                    if found is not None:
+                        return found
+        for task in self.tasks:
+            found = find_subtask(task)
+            if found:
+                return found
+                
         
     def add_task(self, title, priority=1):
         task = Task(title, priority)
@@ -17,100 +32,71 @@ class TaskManager:
         return task
         
     def complete_task(self, title):
-        for task in self.tasks:
-            if task.title == title:
-                task.completed = True
-                return True
+        found = self.find_task(title)
+        def complete_subtasks(task):
+            task.completed = True
+            for subtask in task.subtasks:
+                complete_subtasks(subtask)
+        if found:
+            complete_subtasks(found)
+            return True
         return False
     
     def add_subtask(self, parent_title, subtask_title):
-        for task in self.tasks:
-            if task.title == parent_title:
-                subtask = Task(subtask_title, 1)
-                task.subtasks.append(subtask)
-                return subtask
+        found = self.find_task(parent_title)
+        if found:
+            subtask = Task(subtask_title, found.priority)
+            found.subtasks.append(subtask)
+            return subtask
         return None
     
     def get_incomplete_tasks(self):
         incomplete = []
-        for task in self.tasks:
+        def incomplete_subtasks(task):
             if task.completed == False:
                 incomplete.append(task)
-            
-            for subtask in task.subtasks:
-                incomplete.append(subtask)
+                for subtask in task.subtasks:
+                    incomplete_subtasks(subtask)
+        for subtask in self.tasks:
+            incomplete_subtasks(subtask)
         return incomplete
     
     def change_priority(self, title, new_priority):
-        for task in self.tasks:
+        def change_priority_subtask(task):
             if task.title == title:
                 task.priority = new_priority
+                return task
+            else:
+                for subtask in task.subtasks:
+                    found = change_priority_subtask(subtask)
+                    if found is not None:
+                        task.priority = min(task.priority, new_priority)
+                        return found
+        for task in self.tasks:
+            found = change_priority_subtask(task)
+            if found is not None:
+                task.priority = min(task.priority, new_priority)
                 return True
         return False
     
     def delete_task(self, title):
-        for i, task in enumerate(self.tasks):
+
+        def delete_subtask(task):
             if task.title == title:
+                return task
+            else:
+                for i, subtask in enumerate(task.subtasks):
+                    found = delete_subtask(subtask)
+                    if found == True:
+                        return found
+                    if found:
+                        del task.subtasks[i]
+                        return True
+        for i,task in enumerate(self.tasks):
+            found = delete_subtask(task)
+            if found == True:
+                return found
+            if found:
                 del self.tasks[i]
                 return True
-            for j, subtask in enumerate(task.subtasks):
-                if subtask.title == title:
-                    del task.subtasks[i]
-                    return True
         return False
-
-# test_task_manager.py
-
-import pytest
-from task_manager import TaskManager, Task
-
-def test_add_task():
-    manager = TaskManager()
-    task = manager.add_task("Test Task", 2)
-    assert len(manager.tasks) == 1
-    assert manager.tasks[0].title == "Test Task"
-    assert manager.tasks[0].priority == 2
-
-def test_complete_task():
-    manager = TaskManager()
-    manager.add_task("Parent Task")
-    manager.add_subtask("Parent Task", "Subtask")
-    manager.complete_task("Parent Task")
-    assert manager.tasks[0].completed == True
-    assert manager.tasks[0].subtasks[0].completed == True
-
-def test_add_subtask():
-    manager = TaskManager()
-    manager.add_task("Parent Task", 2)
-    subtask = manager.add_subtask("Parent Task", "Subtask")
-    assert len(manager.tasks[0].subtasks) == 1
-    assert manager.tasks[0].subtasks[0].title == "Subtask"
-    assert manager.tasks[0].subtasks[0].priority == 2
-
-def test_get_incomplete_tasks():
-    manager = TaskManager()
-    manager.add_task("Task 1", 3)
-    manager.add_task("Task 2", 1)
-    manager.add_subtask("Task 1", "Subtask 1")
-    manager.complete_task("Task 2")
-    incomplete = manager.get_incomplete_tasks()
-    assert len(incomplete) == 2
-    assert incomplete[0].title == "Task 1"
-    assert incomplete[1].title == "Subtask 1"
-
-def test_change_priority():
-    manager = TaskManager()
-    manager.add_task("Task", 1)
-    manager.add_subtask("Task", "Subtask")
-    manager.change_priority("Subtask", 3)
-    assert manager.tasks[0].subtasks[0].priority == 3
-    assert manager.tasks[0].priority == 1
-
-def test_delete_task():
-    manager = TaskManager()
-    manager.add_task("Task 1")
-    manager.add_task("Task 2")
-    manager.add_subtask("Task 1", "Subtask")
-    assert manager.delete_task("Task 1") == True
-    assert len(manager.tasks) == 1
-    assert manager.tasks[0].title == "Task 2"
