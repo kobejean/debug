@@ -71,17 +71,6 @@ def test_delete_subtask():
     assert manager.delete_task("Subtask") == True
     assert len(manager.tasks[1].subtasks) == 0
 
-def test_get_incomplete_tasks_nested():
-    manager = TaskManager()
-    manager.add_task("Task 1", 3)
-    manager.add_task("Task 2", 1)
-    manager.add_subtask("Task 1", "Subtask 1")
-    manager.complete_task("Task 2")
-    incomplete = manager.get_incomplete_tasks()
-    assert len(incomplete) == 2
-    assert incomplete[0].title == "Task 1"
-    assert incomplete[1].title == "Subtask 1"
-
 def test_add_subtask_to_subtask():
     manager = TaskManager()
     manager.add_task("Parent Task", 2)
@@ -103,3 +92,73 @@ def test_change_priority_propagate():
     assert manager.tasks[0].subtasks[0].priority == 1
     # parent priority should change to 1 value because Subtask was changed to 1 which is lower than 3
     assert manager.tasks[0].priority == 1 
+
+def test_get_incomplete_tasks_nested1():
+    manager = TaskManager()
+    manager.add_task("Task 1", 3)
+    manager.add_task("Task 2", 1)
+    manager.add_subtask("Task 1", "Subtask 1")
+    manager.complete_task("Subtask 1")
+    incomplete = manager.get_incomplete_tasks()
+    assert len(incomplete) == 2
+    assert incomplete[0].title == "Task 2" # lower priority value first
+    assert incomplete[1].title == "Task 1"
+
+
+def test_get_incomplete_tasks_nested2():
+    manager = TaskManager()
+    manager.add_task("Task 1", 3)
+    manager.add_task("Task 2", 1)
+    manager.add_subtask("Task 1", "Subtask 1")
+    manager.add_subtask("Subtask 1", "Subtask 2")
+    manager.complete_task("Task 2")
+    incomplete = manager.get_incomplete_tasks()
+    assert len(incomplete) == 3
+    assert incomplete[0].title == "Task 1"
+    assert incomplete[1].title == "Subtask 1"
+    assert incomplete[2].title == "Subtask 2"
+
+
+def test_get_incomplete_tasks_nested3():
+    manager = TaskManager()
+    manager.add_task("Task 1", 3)
+    manager.add_task("Task 2", 1)
+    manager.add_subtask("Task 1", "Subtask 1")
+    manager.add_subtask("Subtask 1", "Subtask 2")
+    manager.complete_task("Subtask 2")
+    incomplete = manager.get_incomplete_tasks()
+    assert len(incomplete) == 3
+    assert incomplete[0].title == "Task 2"  # lower priority value first
+    assert incomplete[1].title == "Task 1"
+    assert incomplete[2].title == "Subtask 1"
+
+def test_delete_subsubtask():
+    manager = TaskManager()
+    manager.add_task("Task 1")
+    manager.add_task("Task 2")
+    manager.add_subtask("Task 2", "Subtask 1")
+    manager.add_subtask("Subtask 1", "Subtask 2")
+    manager.add_subtask("Subtask 1", "Subtask 3")
+    assert manager.delete_task("Subtask 2") == True
+    assert len(manager.tasks[1].subtasks) == 1
+    assert len(manager.tasks[1].subtasks[0].subtasks) == 1
+    assert manager.tasks[1].subtasks[0].subtasks[0].title == "Subtask 3"
+
+def test_change_priority_propagate2():
+    manager = TaskManager()
+    manager.add_task("Task 1", 5)
+    manager.add_task("Task 2", 4)
+    manager.add_subtask("Task 2", "Subtask 1")
+    manager.add_subtask("Subtask 1", "Subtask 2")
+    manager.add_subtask("Subtask 1", "Subtask 3")
+    manager.change_priority("Subtask 3", 3)
+    # Subtask 3 changed
+    assert manager.tasks[1].subtasks[0].subtasks[1].priority == 3
+    # Subtask 2 unchanged
+    assert manager.tasks[1].subtasks[0].subtasks[0].priority == 4
+    # Subtask 1 changed
+    assert manager.tasks[1].subtasks[0].priority == 3
+    # Task 2 changed
+    assert manager.tasks[1].priority == 3
+    # Task 1 unchanged
+    assert manager.tasks[0].priority == 5

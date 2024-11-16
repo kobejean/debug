@@ -59,6 +59,7 @@ class TaskManager:
                     incomplete_subtasks(subtask)
         for subtask in self.tasks:
             incomplete_subtasks(subtask)
+        incomplete.sort(key=lambda task: task.priority)
         return incomplete
     
     def change_priority(self, title, new_priority):
